@@ -12,17 +12,16 @@ define kafka::broker::topic(
   $zookeeper          = '',
   $replication_factor = 1,
   $partitions         = 1,
-  $log_retentenion_ms = undef
+  $log_retention_ms   = undef
 ) {
 
   $_zookeeper          = "--zookeeper ${zookeeper}"
   $_replication_factor = "--replication-factor ${replication_factor}"
   $_partitions         = "--partitions ${partitions}"
-  if $log_retentenion_ms != undef {
-      $_log_retention_ms = "--config retention.ms=${log_retentenion_ms}"
-  }
-  else {
-    $_log_retention_ms = ""
+
+  $_log_retention_ms = $log_retention_ms ? {
+      undef       => "",
+      default     => "--config retention.ms=${log_retention_ms}",
   }
 
   if $ensure == 'present' {
