@@ -22,8 +22,8 @@ class kafka::mirror::config(
   if $consumer_config['group.id'] == '' {
     fail('[Consumer] You need to specify a value for group.id')
   }
-  if $consumer_config['zookeeper.connect'] == '' {
-    fail('[Consumer] You need to specify a value for zookeeper.connect')
+  if $consumer_config['zookeeper.connect'] == '' and $consumer_config['bootstrap.servers'] == '' {
+    fail('[Consumer] You need to specify a value for consumer connection')
   }
 
   if versioncmp($kafka::version, '0.9.0.0') < 0 {
