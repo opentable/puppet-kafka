@@ -88,7 +88,7 @@ start() {
 }
 
 stop() {
-  if [ ! -f "$PID_FILE" ]; then
+  if ! [ -f "$PID_FILE" ]; then
     echo -n "$PID_FILE does not exist"
     if [ $(_check_mm_pid) != "NOPID" ]; then
       echo -n ", but process is running"
