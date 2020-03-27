@@ -79,7 +79,7 @@ start() {
 }
 
 stop() {
-  if ! [ -f "$PID_FILE" ]; then
+  if [ ! -f "$PID_FILE" ]; then
     echo -n "$PID_FILE does not exist"
     if PID=`pgrep -f "$PGREP_PATTERN"` ; then
       echo -n ", but process is running"
