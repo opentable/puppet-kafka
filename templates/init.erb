@@ -35,7 +35,7 @@ PGREP_PATTERN=kafka.tools.ConsoleConsumer
 DAEMON="<%= @bin_dir %>/kafka-console-consumer.sh"
 DAEMON_OPTS="<% @service_config.sort.each do |k,v| -%><% unless v.to_s.strip.empty? -%>--<%= k -%> '<%= v.is_a?(Array) ? v.join(',') : v %>' <% end -%><% end -%>"
 <%- when 'kafka-mirror' -%>
-PGREP_PATTERN=kafka.tools.MirrorMaker
+PGREP_PATTERN=MirrorMaker
 DAEMON="<%= @bin_dir %>/kafka-run-class.sh"
 DAEMON_OPTS="kafka.tools.MirrorMaker --consumer.config <%= @config_dir %>/consumer.properties --producer.config <%= @config_dir %>/producer.properties <% @service_config.sort.each do |k,v| -%><% unless v.to_s.strip.empty? -%>--<%= k -%> '<%= v.is_a?(Array) ? v.join(',') : v %>' <% end -%><% end -%>"
 <%- when 'kafka-producer' -%>
@@ -49,13 +49,22 @@ if [ -f /etc/default/kafka ]; then
     . /etc/default/kafka
 fi
 
+_check_mm_pid(){
+	is_mm_running_pid=$(jps | grep "$PGREP_PATTERN" | awk '{print $1}')
+	if [ "x$is_mm_running_pid" != "x" ]; then
+		echo $is_mm_running_pid
+	else
+		echo "NOPID"
+	fi
+}
+
 start() {
   ulimit -n 65536
   ulimit -s 10240
   ulimit -c unlimited
   if [ -f "$PID_FILE" ]; then
     PID=`cat "$PID_FILE"`
-    if [ `ps -p "$PID" -o pid= || echo 1` -eq `pgrep -f "$PGREP_PATTERN" || echo 2` ] ; then
+    if [ `ps -p "$PID" -o pid= || echo 1` -eq $(_check_mm_pid) ] ; then
       echo "$PID_FILE exists, process is already running"
       exit 0
     fi
@@ -67,7 +76,7 @@ start() {
 
   /bin/su "$KAFKA_USER" -c "KAFKA_JMX_OPTS=\"$KAFKA_JMX_OPTS\" $DAEMON $DAEMON_OPTS<%- if @service_name == 'kafka-producer' -%> $PRODUCER_INPUT<%- end -%> >/dev/null 2>&1 &"
   sleep 2
-  PID=`pgrep -f "$PGREP_PATTERN"`
+  PID=$(_check_mm_pid)
   if [ -z "$PID" ]; then
     echo "$NAME could not be started"
     exit 1
@@ -81,9 +90,9 @@ start() {
 stop() {
   if ! [ -f "$PID_FILE" ]; then
     echo -n "$PID_FILE does not exist"
-    if PID=`pgrep -f "$PGREP_PATTERN"` ; then
+    if [ $(_check_mm_pid) != "NOPID" ]; then
       echo -n ", but process is running"
-      echo "$PID" > "$PID_FILE"
+      echo $(_check_mm_pid) > "$PID_FILE"
     else
       echo -n ", and process is not running"
       return 1
@@ -97,7 +106,7 @@ stop() {
   # wait until the process is finished
   RETRIES=0
   MAX_RETRIES=10
-  while [ ! -z `pgrep -f "$PGREP_PATTERN"` ]; do
+  while [ $(_check_mm_pid) != "NOPID" ]; do
     sleep 1
     RETRIES=$((RETRIES+1))
     if [ "$RETRIES" -ge "$MAX_RETRIES" ]; then
@@ -117,7 +126,7 @@ status() {
   fi
 
   PID=`cat "$PID_FILE"`
-  if ! [ `ps -p "$PID" -o pid= || echo 1` -eq `pgrep -f "$PGREP_PATTERN" || echo 2` ] ; then
+  if ! [ `ps -p "$PID" -o pid= || echo 1` -eq $(_check_mm_pid) ] ; then
     echo "$NAME stopped but pid file exists"
     exit 1
   fi
