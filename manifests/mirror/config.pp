@@ -22,11 +22,17 @@ class kafka::mirror::config (
   if $consumer_config['group.id'] == '' {
     fail('[Consumer] You need to specify a value for group.id')
   }
-  if $consumer_config['zookeeper.connect'] == '' {
-    fail('[Consumer] You need to specify a value for zookeeper.connect')
-  }
-  if $producer_config['bootstrap.servers'] == '' {
-    fail('[Producer] You need to specify a value for bootstrap.servers')
+  # Commenting this out from upstream repo
+  # if $consumer_config['zookeeper.connect'] == '' {
+  #   fail('[Consumer] You need to specify a value for zookeeper.connect')
+  # }
+  # if $producer_config['bootstrap.servers'] == '' {
+  #   fail('[Producer] You need to specify a value for bootstrap.servers')
+  # }
+
+  # Updated logic below as VIS is not using bootstrap servers so we do not want to fail if it's blank
+  if $consumer_config['zookeeper.connect'] == '' and $consumer_config['bootstrap.servers'] == '' {
+    fail('[Consumer] You need to specify a value for consumer connection')
   }
 
   class { 'kafka::consumer::config':
