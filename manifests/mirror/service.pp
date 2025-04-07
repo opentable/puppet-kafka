@@ -16,7 +16,7 @@ class kafka::mirror::service (
   Optional[String[1]] $limit_nofile          = $kafka::mirror::limit_nofile,
   Optional[String[1]] $limit_core            = $kafka::mirror::limit_core,
   Hash $env                                  = $kafka::mirror::env,
-  Hash[String[1],String[1]] $consumer_config = $kafka::mirror::consumer_config,
+  Hash[String,String] $consumer_config = $kafka::mirror::consumer_config,
   Hash[String[1],String[1]] $producer_config = $kafka::mirror::producer_config,
   Hash[String[1],String[1]] $service_config  = $kafka::mirror::service_config,
   String[1] $heap_opts                       = $kafka::mirror::heap_opts,
