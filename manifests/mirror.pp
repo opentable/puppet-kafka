@@ -151,7 +151,7 @@ class kafka::mirror (
   Optional[String[1]] $limit_nofile             = $kafka::params::limit_nofile,
   Optional[String[1]] $limit_core               = $kafka::params::limit_core,
   Hash $env                                     = {},
-  Hash[String[1],String[1]] $consumer_config    = {},
+  Hash[String,String] $consumer_config    = {},
   Hash[String[1],String[1]] $producer_config    = {},
   Hash[String[1],String[1]] $service_config     = {},
   String[1] $heap_opts                          = $kafka::params::mirror_heap_opts,
